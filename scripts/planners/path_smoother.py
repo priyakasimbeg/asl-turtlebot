@@ -19,7 +19,32 @@ def compute_smoothed_traj(path, V_des, alpha, dt):
     Hint: Use splrep and splev from scipy.interpolate
     """
     ########## Code starts here ##########
-    raise NotImplementedError # REPLACE THIS FUNCTION WITH YOUR IMPLEMENTATION
+    path = np.array(path)
+    x = path[:, 0]
+    y = path[:, 1]
+    dx = np.array([xb - xa for xb, xa in zip(x[1:], x[:-1])])
+    dy = np.array([yb - ya for yb, ya in zip(y[1:], y[:-1])])
+    dt_s = np.sqrt(dx**2 + dy**2)/V_des
+    t = np.cumsum(dt_s)
+    t = np.hstack(([0], t))
+
+    splx = scipy.interpolate.splrep(t, x, k=3, s=alpha)
+    sply = scipy.interpolate.splrep(t, y, k=3, s=alpha)
+
+    t_smoothed = np.arange(0, t[-1]+dt, dt)
+
+    x = scipy.interpolate.splev(t_smoothed, splx, )
+    y = scipy.interpolate.splev(t_smoothed, sply, )
+
+    x_dot = scipy.interpolate.splev(t_smoothed, splx, der=1 )
+    y_dot = scipy.interpolate.splev(t_smoothed, sply, der=1)
+
+    x_ddot = scipy.interpolate.splev(t_smoothed, splx, der=2)
+    y_ddot = scipy.interpolate.splev(t_smoothed, sply, der=2)
+
+    theta = np.arctan(y_dot/x_dot)
+    traj_smoothed = np.column_stack((x, y, theta, x_dot, y_dot, x_ddot, y_ddot))
+
     ########## Code ends here ##########
 
     return traj_smoothed, t_smoothed
